@@ -14,7 +14,7 @@ The **Model Context Protocol (MCP)** is an open standard for connecting AI assis
 
 ## Requirements
 
-- EasySignage **Premium** or **Enterprise** plan
+- EasySignage **Premium** or **Enterprise** plan (the Diagnose use case needs **Enterprise**, because the audit log is an Enterprise feature)
 - Signed in to the EasySignage account you want to connect. A connection only applies to the account that's active during setup. Connect each account separately.
 - Fewer than 10 API keys on the account. Each MCP connection creates one key.
 
@@ -105,7 +105,7 @@ Things to know:
 | Connection | Use cases | Access |
 |---|---|---|
 | "Signage Ops" | Media control | Media: Full · Displays: Full · rest: Read only |
-| "Signage Reports" | Reporting + Diagnose | Everything: Read only |
+| "Signage Reports" | Reporting + Diagnose (Enterprise) | Everything: Read only |
 
 Two connections means your 5-minute dashboard job can never change content by accident.
 

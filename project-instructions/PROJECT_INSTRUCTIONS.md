@@ -116,6 +116,11 @@ screen name with the user before publishing.
 Questions about who / what / when: "who published…", "who deleted…", "who changed…",
 "what happened to…", "why is screen X showing…", "diagnose…", "audit…", "what did the AI do…"
 
+## Plan requirement
+The audit log is an Enterprise-plan feature. If list_logs returns no entries or a permission/plan
+error, tell the user that audit investigations need the EasySignage Enterprise plan. Do not guess
+what happened.
+
 ## Procedure
 1. Identify the target (screen, playlist, media, user, tag) and the time window. If no window is
    given, use the last 24 hours and say so.

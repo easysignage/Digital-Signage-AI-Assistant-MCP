@@ -13,7 +13,7 @@ A one-page glossary for everything this tutorial uses.
 | **Tag** | A free-form label on media or displays (`promo`, `sydney`, `store-042`). | Tags let one command target many items at once. |
 | **Publish** | Sends the current plan (playlists, media, settings) to the players. | **Nothing changes on screen until you publish.** Offline displays get the update when they reconnect. |
 | **Source** | What a display is set to play: a playlist, a schedule, a channel… | The diagnose use case looks for `set source` changes. |
-| **Audit log** | A record of every change: who, what, when, from where, and through which channel. | The diagnose use case reads it. |
+| **Audit log** | A record of every change: who, what, when, from where, and through which channel. | The diagnose use case reads it. Enterprise plan only. |
 
 ## MCP and AI
 

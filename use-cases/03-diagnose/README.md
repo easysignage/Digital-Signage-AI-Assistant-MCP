@@ -1,5 +1,7 @@
 # Use case 3 — Diagnose: audit-log investigation
 
+> **Enterprise plan required.** The audit log is an EasySignage Enterprise feature, so this use case only works on Enterprise accounts. See [pricing](https://easysignage.com/digital-signage-software-pricing/).
+
 > **"Who changed the lobby screen?" "Who deleted the summer video?" Get the answer in seconds, in plain language.**
 
 ## The business problem

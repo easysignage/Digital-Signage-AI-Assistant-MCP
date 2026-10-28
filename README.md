@@ -4,6 +4,8 @@ Manage your digital signage screens by **chatting with an AI assistant**, using 
 
 This repository is a hands-on tutorial. It shows three practical use cases you can set up in about 15 minutes. You also get a ready-made **project instruction set** to copy into your AI assistant.
 
+📰 **Read the overview on our blog:** [easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases](https://easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases/)
+
 ---
 
 ## What we will build
@@ -13,7 +15,7 @@ This repository is a hands-on tutorial. It shows three practical use cases you c
 | 1 | **[Media control: promotion mode](#1-media-control--promotion-mode)** | `promo`, or "show the promotion on my screens" | The assistant enables every media item tagged `promo` and publishes to every screen tagged `promo`. Screens play the promotion **in addition to** their normal content. |
 |   |  | `normal`, or "back to normal" | The assistant disables the `promo` media and publishes again. Screens go back to their normal content only. |
 | 2 | **[Reporting: live player dashboard](#2-reporting--live-player-status-dashboard)** | "Build my player dashboard" / "Refresh the dashboard" | The assistant reads the status of every player (online/offline, power, software version, what it's playing). It writes that to a dashboard web page that refreshes every 5 minutes. **The dashboard itself runs on a digital signage screen.** |
-| 3 | **[Diagnose: audit-log investigation](#3-diagnose--audit-log-investigation)** | "Who changed what's on the lobby screen yesterday?" / "Who deleted the summer video?" | The assistant searches the audit logs and reports a clear timeline: who, what, when, from where, and through which channel (web app, API, or AI). |
+| 3 | **[Diagnose: audit-log investigation](#3-diagnose--audit-log-investigation)** (Enterprise plan) | "Who changed what's on the lobby screen yesterday?" / "Who deleted the summer video?" | The assistant searches the audit logs and reports a clear timeline: who, what, when, from where, and through which channel (web app, API, or AI). |
 
 Then we put it all together:
 
@@ -64,6 +66,7 @@ Then we put it all together:
 You need:
 
 1. An **EasySignage account** on the **Premium or Enterprise** plan. MCP access is included in these plans.
+   - **Use case 3 (Diagnose) needs the Enterprise plan**, because it reads the audit log, which is an Enterprise feature. Use cases 1 and 2 work on Premium.
 2. An **AI assistant that supports custom MCP connectors**: Claude (web, desktop, or Claude Code), ChatGPT (Developer mode), or Gemini CLI.
 3. A few minutes to **tag your content and screens** (explained in each use case).
 
@@ -109,7 +112,7 @@ Then run `/mcp` inside Claude Code to sign in.
 
 During sign-in you set each area to **No access**, **Read only**, or **Full access**. For this tutorial:
 
-| Area | Media control | Reporting | Diagnose |
+| Area | Media control | Reporting | Diagnose (Enterprise) |
 |------|:---:|:---:|:---:|
 | Media | Full | — | Read |
 | Displays (screens) | Full (to publish) | Read | Read |
@@ -205,6 +208,8 @@ Build my player status report and save it as status.json for the dashboard.
 
 ## 3. Diagnose — audit-log investigation
 
+> **Enterprise plan required.** This use case reads the EasySignage audit log, which is included in the Enterprise plan only.
+
 **Goal:** answer "what happened?" in seconds. For example: who published to a screen, who changed what it plays, who deleted something.
 
 ### What the assistant can see
@@ -274,10 +279,13 @@ No. Access lasts until you delete the `MCP:` key in Settings → API Keys.
 No. The EasySignage MCP server doesn't allow deleting screens, playlists, or media.
 
 **My screens didn't change after "promo".**
-Check that (1) media items are tagged exactly `promo`, (2) screens are tagged `promo`, (3) the promo media is inside a playlist those screens play. Offline screens pick up the change when they reconnect. Then ask: *"Diagnose: did the promo publish succeed?"*
+Check that (1) media items are tagged exactly `promo`, (2) screens are tagged `promo`, (3) the promo media is inside a playlist those screens play. Offline screens pick up the change when they reconnect. On the Enterprise plan you can also ask: *"Diagnose: did the promo publish succeed?"*
 
 **Can I use a different word than "promo"?**
 Yes. Change the tag and trigger words in the project instructions, e.g. `sale` / `end sale`, or `breakfast` / `lunch`.
+
+**Which plan do I need?**
+Premium or Enterprise for MCP access (use cases 1 and 2). Enterprise for use case 3, because the audit log is an Enterprise feature. See [pricing](https://easysignage.com/digital-signage-software-pricing/).
 
 **Which AI assistant is best?**
 All three work. For the 5-minute dashboard refresh, use an assistant that can run scheduled or looping tasks, such as Claude Code (`/loop`), Claude scheduled tasks, or a cron job running a CLI assistant.
@@ -286,8 +294,13 @@ All three work. For the 5-minute dashboard refresh, use an assistant that can ru
 
 ## Learn more
 
+- 📰 [3 digital signage tasks to hand to an AI assistant with MCP (EasySignage blog)](https://easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases/)
 - 📰 [Manage digital signage with an AI assistant (EasySignage blog)](https://easysignage.com/blog/26/manage-digital-signage-with-ai-assistant/)
 - 🌐 [easysignage.com](https://easysignage.com)
 - 📘 [Model Context Protocol](https://modelcontextprotocol.io)
 
 Contributions and new use-case ideas are welcome. Open an issue or pull request.
+
+---
+
+📰 **Full write-up on our blog:** [easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases](https://easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases/)
