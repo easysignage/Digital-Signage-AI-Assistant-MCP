@@ -294,7 +294,7 @@ All three work. For the 5-minute dashboard refresh, use an assistant that can ru
 
 ## Learn more
 
-- 📰 [3 digital signage tasks to hand to an AI assistant with MCP (EasySignage blog)](https://easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases/)
+- 📰 [MCP use cases for digital signage (EasySignage blog)](https://easysignage.com/blog/26/digital-signage-mcp-ai-assistant-use-cases/)
 - 📰 [Manage digital signage with an AI assistant (EasySignage blog)](https://easysignage.com/blog/26/manage-digital-signage-with-ai-assistant/)
 - 🌐 [easysignage.com](https://easysignage.com)
 - 📘 [Model Context Protocol](https://modelcontextprotocol.io)
