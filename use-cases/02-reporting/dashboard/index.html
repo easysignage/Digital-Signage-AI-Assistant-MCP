@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player Status</title>
+<!--
+  EasySignage player status dashboard
+  ------------------------------------
+  A single static file designed to run full-screen on a digital signage player (1920x1080 or 1080x1920).
+  It reads status.json (written every 5 minutes by your AI assistant via the EasySignage MCP server)
+  and re-reads it every 60 seconds. No API keys, no build step, no external libraries.
+
+  URL options:
+    ?src=https://example.com/status.json   read data from another location (default: ./status.json)
+    ?poll=60                               seconds between data reloads (default: 60)
+    ?stale=15                              minutes before the "data is stale" warning (default: 15)
+    ?page=10                               seconds per page when the player list is longer than the screen
+-->
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #131a2e;
+    --panel-2: #1a2340;
+    --text: #e8ecf6;
+    --muted: #8b95b0;
+    --ok: #2ecc8f;
+    --bad: #ff5d6c;
+    --warn: #ffb547;
+    --info: #5aa9ff;
+    --border: #24304f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: clamp(14px, 1.05vw, 28px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 2vh 2.5vw;
+    gap: 2vh;
+  }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 2vw; }
+  .title { display: flex; align-items: baseline; gap: 1.2vw; }
+  h1 { font-size: 2.2em; font-weight: 700; letter-spacing: -0.01em; }
+  .account { color: var(--muted); font-size: 1.2em; }
+  .clock { text-align: right; }
+  .clock .time { font-size: 2.2em; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .clock .updated { color: var(--muted); font-size: 0.95em; }
+  .updated.stale { color: var(--warn); font-weight: 600; }
+
+  .banner {
+    display: none;
+    background: rgba(255, 181, 71, 0.12);
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    border-radius: 12px;
+    padding: 1.2vh 1.5vw;
+    font-weight: 600;
+    font-size: 1.1em;
+  }
+  .banner.show { display: block; }
+
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2vw; }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2vh 1.5vw;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 6px; background: var(--accent, var(--info)); }
+  .kpi .label { color: var(--muted); font-size: 1em; text-transform: uppercase; letter-spacing: 0.08em; }
+  .kpi .value { font-size: 4em; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .kpi .sub { color: var(--muted); font-size: 0.95em; }
+  .kpi.ok { --accent: var(--ok); }
+  .kpi.bad { --accent: var(--bad); }
+  .kpi.warn { --accent: var(--warn); }
+
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 2.2fr; gap: 1.2vw; }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2vh 1.5vw;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  section h2 { font-size: 1.3em; margin-bottom: 1.5vh; display: flex; justify-content: space-between; align-items: baseline; }
+  section h2 small { color: var(--muted); font-weight: 400; font-size: 0.8em; }
+
+  .alerts { list-style: none; display: flex; flex-direction: column; gap: 1vh; overflow: hidden; }
+  .alerts li {
+    background: var(--panel-2);
+    border-radius: 10px;
+    padding: 1.2vh 1vw;
+    border-left: 5px solid var(--bad);
+  }
+  .alerts li.warn { border-left-color: var(--warn); }
+  .alerts .name { font-weight: 600; font-size: 1.1em; }
+  .alerts .why { color: var(--muted); font-size: 0.95em; }
+  .all-good { color: var(--ok); font-size: 1.4em; font-weight: 600; margin: auto; text-align: center; }
+
+  .table-wrap { flex: 1; min-height: 0; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 0.6vw 1vh;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 1.1vh 0.6vw; border-bottom: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 20vw; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-flex; align-items: center; gap: 0.5em; font-weight: 600; }
+  .dot { width: 0.8em; height: 0.8em; border-radius: 50%; background: currentColor; }
+  .s-online { color: var(--ok); }
+  .s-offline { color: var(--bad); }
+  .s-off { color: var(--warn); }
+  .muted { color: var(--muted); }
+  .tag { display: inline-block; background: var(--panel-2); color: var(--muted); border-radius: 6px; padding: 0.1em 0.5em; margin-right: 0.3em; font-size: 0.85em; }
+  .pager { color: var(--muted); font-size: 0.85em; }
+
+  footer { color: var(--muted); font-size: 0.85em; display: flex; justify-content: space-between; }
+
+  /* Portrait screens: stack the panels */
+  @media (orientation: portrait) {
+    body { font-size: clamp(14px, 1.9vw, 30px); }
+    .kpi .value { font-size: 3em; }
+    .kpi .sub { display: none; }
+    main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    main > section:first-child { max-height: 28vh; }
+    .col-platform, .col-tags { display: none; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>Player Status</h1>
+      <span class="account" id="account">—</span>
+    </div>
+    <div class="clock">
+      <div class="time" id="clock">--:--</div>
+      <div class="updated" id="updated">Waiting for data…</div>
+    </div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="label">Total players</div><div class="value" id="k-total">–</div><div class="sub">in this account</div></div>
+    <div class="kpi ok"><div class="label">Online</div><div class="value" id="k-online">–</div><div class="sub" id="k-online-pct">&nbsp;</div></div>
+    <div class="kpi bad"><div class="label">Offline</div><div class="value" id="k-offline">–</div><div class="sub">not connected</div></div>
+    <div class="kpi warn"><div class="label">Powered off</div><div class="value" id="k-power">–</div><div class="sub">screen off</div></div>
+    <div class="kpi warn"><div class="label">Licence issues</div><div class="value" id="k-licence">–</div><div class="sub">expired</div></div>
+  </div>
+
+  <main>
+    <section>
+      <h2>Needs attention <small id="alert-count"></small></h2>
+      <ul class="alerts" id="alerts"></ul>
+    </section>
+    <section>
+      <h2>All players <small class="pager" id="pager"></small></h2>
+      <div class="table-wrap" id="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Name</th>
+              <th>Playing</th>
+              <th class="col-platform">Platform</th>
+              <th>Version</th>
+              <th class="col-tags">Tags</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Data via EasySignage MCP · refreshed by AI assistant every <span id="refresh-min">5</span> min</span>
+    <span id="footer-right"></span>
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var params = new URLSearchParams(location.search);
+  var SRC = params.get("src") || "status.json";
+  var POLL_S = Number(params.get("poll")) || 60;
+  var STALE_MIN = Number(params.get("stale")) || 15;
+  var PAGE_S = Number(params.get("page")) || 10;
+
+  var data = null;
+  var lastFetchOk = null;
+  var page = 0;
+
+  function $(id) { return document.getElementById(id); }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function status(d) {
+    if (!d.online) return { key: "offline", label: "Offline", cls: "s-offline", rank: 0 };
+    if (d.power === false) return { key: "off", label: "Screen off", cls: "s-off", rank: 1 };
+    return { key: "online", label: "Online", cls: "s-online", rank: 2 };
+  }
+
+  function minutesAgo(iso) {
+    var t = Date.parse(iso);
+    return isNaN(t) ? Infinity : (Date.now() - t) / 60000;
+  }
+
+  function fmtAgo(min) {
+    if (!isFinite(min)) return "unknown";
+    if (min < 1) return "just now";
+    if (min < 60) return Math.round(min) + " min ago";
+    var h = Math.floor(min / 60);
+    if (h >= 48) return Math.floor(h / 24) + " days ago";
+    return h + " h " + Math.round(min % 60) + " min ago";
+  }
+
+  function tick() {
+    var now = new Date();
+    $("clock").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    renderFreshness();
+  }
+
+  function renderFreshness() {
+    var el = $("updated");
+    var banner = $("banner");
+    if (!data) {
+      el.textContent = lastFetchOk === false ? "Cannot load data" : "Waiting for data…";
+      el.className = "updated" + (lastFetchOk === false ? " stale" : "");
+      return;
+    }
+    var age = minutesAgo(data.generatedAt);
+    var stale = age > STALE_MIN;
+    el.textContent = "Updated " + fmtAgo(age);
+    el.className = "updated" + (stale ? " stale" : "");
+    if (stale) {
+      banner.textContent = "⚠ Data is stale — last update " + fmtAgo(age) +
+        ". Check that the AI refresh task is still running.";
+      banner.classList.add("show");
+    } else if (lastFetchOk === false) {
+      banner.textContent = "⚠ Could not reach " + SRC + " — showing the last data received.";
+      banner.classList.add("show");
+    } else {
+      banner.classList.remove("show");
+    }
+  }
+
+  function summarise(list) {
+    var s = { total: list.length, online: 0, offline: 0, poweredOff: 0, licenceIssues: 0 };
+    list.forEach(function (d) {
+      if (d.online) s.online++; else s.offline++;
+      if (d.online && d.power === false) s.poweredOff++;
+      if (d.expired) s.licenceIssues++;
+    });
+    return s;
+  }
+
+  function render() {
+    if (!data) return;
+    var list = (data.displays || []).slice();
+    // Always derive the counts from the list so the tiles can never disagree with the table.
+    var s = summarise(list);
+
+    $("account").textContent = data.account || "";
+    $("refresh-min").textContent = data.refreshMinutes || 5;
+    $("k-total").textContent = s.total;
+    $("k-online").textContent = s.online;
+    $("k-online-pct").textContent = s.total ? Math.round((s.online / s.total) * 100) + "% availability" : "";
+    $("k-offline").textContent = s.offline;
+    $("k-power").textContent = s.poweredOff;
+    $("k-licence").textContent = s.licenceIssues;
+
+    // Needs attention: offline first, then screen off, then licence problems.
+    var alerts = [];
+    list.forEach(function (d) {
+      var st = status(d);
+      if (st.key === "offline") alerts.push({ d: d, rank: 0, cls: "", why: "Offline · was playing " + (d.sourceName || "—") });
+      else if (st.key === "off") alerts.push({ d: d, rank: 1, cls: "warn", why: "Online but screen is powered off" });
+      if (d.expired) alerts.push({ d: d, rank: 2, cls: "warn", why: "Licence expired" });
+    });
+    alerts.sort(function (a, b) { return a.rank - b.rank || a.d.name.localeCompare(b.d.name); });
+
+    $("alert-count").textContent = alerts.length ? alerts.length + " item" + (alerts.length > 1 ? "s" : "") : "";
+    $("alerts").innerHTML = alerts.length
+      ? alerts.map(function (a) {
+          return '<li class="' + a.cls + '"><div class="name">' + esc(a.d.name) + '</div><div class="why">' + esc(a.why) + "</div></li>";
+        }).join("")
+      : '<li style="border:none;background:none"><div class="all-good">✔ All players healthy</div></li>';
+
+    // Table: problems at the top, then alphabetical.
+    list.sort(function (a, b) {
+      return status(a).rank - status(b).rank || a.name.localeCompare(b.name);
+    });
+    renderTable(list);
+  }
+
+  function renderTable(list) {
+    var html = list.map(function (d) {
+      var st = status(d);
+      var playing = d.sourceName ? esc(d.sourceName) + ' <span class="muted">(' + esc(d.sourceType || "") + ")</span>" : '<span class="muted">—</span>';
+      var tags = (d.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("");
+      return "<tr>" +
+        '<td><span class="pill ' + st.cls + '"><span class="dot"></span>' + st.label + "</span></td>" +
+        "<td>" + esc(d.name) + (d.expired ? ' <span class="s-off">· licence</span>' : "") + "</td>" +
+        "<td>" + playing + "</td>" +
+        '<td class="col-platform">' + esc(d.osPlatform || "") + "</td>" +
+        "<td>" + esc(d.softwareVer || "") + "</td>" +
+        '<td class="col-tags">' + tags + "</td>" +
+        "</tr>";
+    }).join("");
+    $("rows").innerHTML = html;
+    paginate();
+  }
+
+  // Signage screens can't scroll, so long lists rotate through pages.
+  function paginate() {
+    var rows = Array.prototype.slice.call($("rows").children);
+    if (!rows.length) { $("pager").textContent = ""; return; }
+    rows.forEach(function (r) { r.style.display = ""; });
+    var wrap = $("table-wrap");
+    var head = wrap.querySelector("thead").offsetHeight;
+    var rowH = rows[0].offsetHeight || 1;
+    var perPage = Math.max(1, Math.floor((wrap.clientHeight - head) / rowH));
+    var pages = Math.ceil(rows.length / perPage);
+    if (page >= pages) page = 0;
+    rows.forEach(function (r, i) {
+      r.style.display = Math.floor(i / perPage) === page ? "" : "none";
+    });
+    $("pager").textContent = pages > 1 ? "page " + (page + 1) + " of " + pages : rows.length + " players";
+  }
+
+  function load() {
+    var url = SRC + (SRC.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now();
+    fetch(url, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (json) {
+        data = json;
+        lastFetchOk = true;
+        render();
+        renderFreshness();
+      })
+      .catch(function (err) {
+        lastFetchOk = false;
+        renderFreshness();
+        $("footer-right").textContent = "Last error: " + err.message;
+        return;
+      })
+      .then(function () {
+        if (lastFetchOk) $("footer-right").textContent = "Next check in " + POLL_S + " s";
+      });
+  }
+
+  tick();
+  load();
+  setInterval(tick, 15000);
+  setInterval(load, POLL_S * 1000);
+  setInterval(function () { page++; paginate(); }, PAGE_S * 1000);
+  window.addEventListener("resize", paginate);
+})();
+</script>
+</body>
+</html>

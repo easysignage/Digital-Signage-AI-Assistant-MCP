@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-10-01T09:00:00Z",
+  "account": "Demo Retail Group",
+  "refreshMinutes": 5,
+  "summary": {
+    "total": 12,
+    "online": 9,
+    "offline": 3,
+    "poweredOff": 1,
+    "licenceIssues": 1
+  },
+  "displays": [
+    { "id": "player_demo01", "name": "Sydney – Front Window", "online": true,  "power": true,  "osPlatform": "android", "softwareVer": 275, "type": "horizontal", "sourceType": "playlist", "sourceName": "Store Loop",      "tags": ["promo", "sydney"],    "expired": false },
+    { "id": "player_demo02", "name": "Sydney – Checkout",     "online": true,  "power": true,  "osPlatform": "android", "softwareVer": 275, "type": "vertical",   "sourceType": "playlist", "sourceName": "Checkout Offers", "tags": ["promo", "sydney"],    "expired": false },
+    { "id": "player_demo03", "name": "Sydney – Back Entrance", "online": false, "power": true,  "osPlatform": "webos",   "softwareVer": 270, "type": "horizontal", "sourceType": "playlist", "sourceName": "Store Loop",      "tags": ["promo", "sydney"],    "expired": false },
+    { "id": "player_demo04", "name": "Melbourne – Lobby",     "online": true,  "power": true,  "osPlatform": "tizen",   "softwareVer": 275, "type": "horizontal", "sourceType": "schedule", "sourceName": "Weekday Schedule", "tags": ["promo", "melbourne"], "expired": false },
+    { "id": "player_demo05", "name": "Melbourne – Café Menu", "online": true,  "power": false, "osPlatform": "android", "softwareVer": 275, "type": "vertical",   "sourceType": "playlist", "sourceName": "Café Menu",       "tags": ["melbourne"],          "expired": false },
+    { "id": "player_demo06", "name": "Melbourne – Gym Floor", "online": true,  "power": true,  "osPlatform": "android", "softwareVer": 268, "type": "horizontal", "sourceType": "playlist", "sourceName": "Fitness Loop",    "tags": ["promo", "melbourne"], "expired": false },
+    { "id": "player_demo07", "name": "Brisbane – Reception",  "online": false, "power": true,  "osPlatform": "windows", "softwareVer": 262, "type": "horizontal", "sourceType": "playlist", "sourceName": "Corporate",       "tags": ["brisbane"],           "expired": true  },
+    { "id": "player_demo08", "name": "Brisbane – Meeting Rm", "online": true,  "power": true,  "osPlatform": "android", "softwareVer": 275, "type": "horizontal", "sourceType": "playlist", "sourceName": "Room Booking",    "tags": ["brisbane"],           "expired": false },
+    { "id": "player_demo09", "name": "Perth – Drive Thru",    "online": true,  "power": true,  "osPlatform": "android", "softwareVer": 275, "type": "horizontal", "sourceType": "playlist", "sourceName": "Drive Thru Menu", "tags": ["promo", "perth"],     "expired": false },
+    { "id": "player_demo10", "name": "Perth – Counter",       "online": true,  "power": true,  "osPlatform": "android", "softwareVer": 275, "type": "vertical",   "sourceType": "playlist", "sourceName": "Counter Offers",  "tags": ["promo", "perth"],     "expired": false },
+    { "id": "player_demo11", "name": "Adelaide – Ops Room",   "online": true,  "power": true,  "osPlatform": "webos",   "softwareVer": 275, "type": "horizontal", "sourceType": "playlist", "sourceName": "Ops Dashboard",   "tags": ["ops"],                "expired": false },
+    { "id": "player_demo12", "name": "Adelaide – Showroom",   "online": false, "power": true,  "osPlatform": "tizen",   "softwareVer": 270, "type": "horizontal", "sourceType": "playlist", "sourceName": "Showroom",        "tags": ["promo", "adelaide"],  "expired": false }
+  ]
+}
